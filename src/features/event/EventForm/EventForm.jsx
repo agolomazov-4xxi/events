@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { Segment, Form, Button } from 'semantic-ui-react';
-import * as R from 'ramda';
+import { connect } from 'react-redux';
+import { pathOr } from 'ramda';
+import cuid from 'cuid';
+import { createEvent, updateEvent } from '../ducks';
 
 const emptyEvent = {
 	title: '',
@@ -16,9 +19,9 @@ class EventForm extends Component {
 	};
 
 	static getDerivedStateFromProps(props) {
-		if (props.selectedEvent) {
+		if (props.event) {
 			return {
-				event: props.selectedEvent,
+				event: props.event,
 			};
 		}
 		return {
@@ -37,11 +40,20 @@ class EventForm extends Component {
 	onFormSubmit = e => {
 		e.preventDefault();
 		const { event } = this.state;
-		const { createEvent, updateEvent, selectedEvent } = this.props;
-		if (selectedEvent) {
-			return updateEvent(event);
+		const { createEvent, updateEvent } = this.props;
+		if (event.id) {
+			updateEvent(event);
+			return this.goBack();
+		} else {
+			const newEvent = {
+				...event,
+				id: cuid(),
+				hostPhotoURL: '/assets/user.png',
+				attendees: [],
+			};
+			createEvent(newEvent);
+			this.props.history.push(`/event/${newEvent.id}`);
 		}
-		return createEvent(event);
 	};
 
 	onInputChange = e => {
@@ -50,6 +62,10 @@ class EventForm extends Component {
 		this.setState({
 			event,
 		});
+	};
+
+	goBack = () => {
+		this.props.history.goBack();
 	};
 
 	render() {
@@ -107,7 +123,7 @@ class EventForm extends Component {
 					<Button positive type="submit">
 						Submit
 					</Button>
-					<Button type="button" onClick={onCancel}>
+					<Button type="button" onClick={onCancel || this.goBack}>
 						Cancel
 					</Button>
 				</Form>
@@ -116,4 +132,32 @@ class EventForm extends Component {
 	}
 }
 
-export default EventForm;
+const mapStateToProps = (state, ownProps) => {
+	const eventId = pathOr(null, ['match', 'params', 'id'], ownProps);
+
+	let event = {
+		title: '',
+		date: '',
+		city: '',
+		venue: '',
+		hostedBy: '',
+	};
+
+	if (eventId && state.events.length) {
+		event = state.events.find(event => event.id === eventId) || event;
+	}
+
+	return {
+		event,
+	};
+};
+
+const mapDispatchToProps = {
+	createEvent,
+	updateEvent,
+};
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(EventForm);
