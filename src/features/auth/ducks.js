@@ -1,14 +1,20 @@
 import { createReducer } from '../../app/common/utils/reducerUtil';
+import { closeModal } from '../modals/ducks';
 
 const LOGIN_USER = 'LOGIN_USER';
 const SIGN_OUT_USER = 'SIGN_OUT_USER';
 
-export const login = creds => ({
-	type: LOGIN_USER,
-	payload: {
-		creds,
-	},
-});
+export const login = creds => {
+	return dispatch => {
+		dispatch({
+			type: LOGIN_USER,
+			payload: {
+				creds,
+			},
+		});
+		dispatch(closeModal());
+	};
+};
 
 export const logout = () => ({
 	type: SIGN_OUT_USER,
