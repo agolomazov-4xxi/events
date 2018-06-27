@@ -1,4 +1,5 @@
 import { createReducer } from '../../app/common/utils/reducerUtil';
+import { toastr } from 'react-redux-toastr';
 import { asyncStart, asyncFinish, asyncError } from '../async/ducks';
 import { fetchSampleData } from '../../app/data/mockApi';
 
@@ -9,19 +10,37 @@ const FETCH_EVENTS = 'FETCH_EVENTS';
 
 const initialState = [];
 
-export const createEvent = event => ({
-	type: CREATE_EVENT,
-	payload: {
-		event,
-	},
-});
+export const createEvent = event => {
+	return async dispatch => {
+		try {
+			dispatch({
+				type: CREATE_EVENT,
+				payload: {
+					event,
+				},
+			});
+			toastr.success('Create Event', 'New event was created');
+		} catch (error) {
+			toastr.error('Create Event', 'Error in process create new event');
+		}
+	};
+};
 
-export const updateEvent = event => ({
-	type: UPDATE_EVENT,
-	payload: {
-		event,
-	},
-});
+export const updateEvent = event => {
+	return dispatch => {
+		try {
+			dispatch({
+				type: UPDATE_EVENT,
+				payload: {
+					event,
+				},
+			});
+			toastr.success('Update event', 'Event was updated');
+		} catch (error) {
+			toastr.error('Oops', 'Something went wrong!');
+		}
+	};
+};
 
 export const deleteEvent = eventId => ({
 	type: DELETE_EVENT,
